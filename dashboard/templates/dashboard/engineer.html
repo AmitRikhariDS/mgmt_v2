@@ -1,0 +1,198 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Engineer Dashboard - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Field Engineer Dashboard</h3>
+    <div>
+        <button class="btn btn-outline-primary me-2"><i class="fas fa-map-marker-alt"></i> Check In</button>
+        <button class="btn btn-primary"><i class="fas fa-plus"></i> Log Time</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">5</div>
+            <div class="label">Assigned Jobs</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">12</div>
+            <div class="label">Hours This Week</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">3</div>
+            <div class="label">Pending Approvals</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">92%</div>
+            <div class="label">Completion Rate</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <h5>Today's Schedule</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Client</th>
+                            <th>Task</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>9:00 AM</td>
+                            <td>TechCorp</td>
+                            <td>Server Maintenance</td>
+                            <td>Downtown Office</td>
+                            <td><span class="badge bg-warning">Scheduled</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">Start</button></td>
+                        </tr>
+                        <tr>
+                            <td>11:30 AM</td>
+                            <td>DataSystems</td>
+                            <td>Network Installation</td>
+                            <td>Main Campus</td>
+                            <td><span class="badge bg-warning">Scheduled</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">Start</button></td>
+                        </tr>
+                        <tr>
+                            <td>2:00 PM</td>
+                            <td>OfficePlus</td>
+                            <td>Software Update</td>
+                            <td>Branch Office</td>
+                            <td><span class="badge bg-warning">Scheduled</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">Start</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Navigation</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-road"></i>
+                <p>Live Navigation to Next Job</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Quick Tools</h5>
+            <div class="quick-tools">
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-microphone me-2"></i> Voice Notes</button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-camera me-2"></i> Capture Image</button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-file-alt me-2"></i> Timesheet</button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-list me-2"></i> Checklist</button>
+                <button class="btn btn-outline-primary w-100 text-start"><i class="fas fa-file-invoice me-2"></i> Expense Report</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Recent Updates</h5>
+            <div class="updates-list">
+                <div class="task-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>New job assigned</strong>
+                        <span class="text-muted">2 hours ago</span>
+                    </div>
+                    <p>OfficePlus software update</p>
+                </div>
+                <div class="task-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Timesheet approved</strong>
+                        <span class="text-muted">Yesterday</span>
+                    </div>
+                    <p>8 hours for TechCorp maintenance</p>
+                </div>
+                <div class="task-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>New tool available</strong>
+                        <span class="text-muted">2 days ago</span>
+                    </div>
+                    <p>Voice-to-text feature added</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="dashboard-card">
+            <h5>My Performance Metrics</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">98%</div>
+                        <div class="label">On-Time Completion</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">4.8/5</div>
+                        <div class="label">Client Rating</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">42</div>
+                        <div class="label">Jobs This Month</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">$1,240</div>
+                        <div class="label">Earnings This Week</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- In the button section -->
+<div>
+    <button class="btn btn-outline-primary me-2 check-in-btn">
+        <i class="fas fa-map-marker-alt"></i> Check In
+    </button>
+    <button class="btn btn-primary">
+        <i class="fas fa-plus"></i> Log Time
+    </button>
+</div>
+
+<!-- In the quick tools section -->
+<div class="quick-tools">
+    <button class="btn btn-outline-primary w-100 text-start mb-2 voice-notes-btn">
+        <i class="fas fa-microphone me-2"></i> Voice Notes
+    </button>
+    <button class="btn btn-outline-primary w-100 text-start mb-2 action-btn" data-action="Capture Image">
+        <i class="fas fa-camera me-2"></i> Capture Image
+    </button>
+    <button class="btn btn-outline-primary w-100 text-start mb-2 action-btn" data-action="Timesheet">
+        <i class="fas fa-file-alt me-2"></i> Timesheet
+    </button>
+    <button class="btn btn-outline-primary w-100 text-start mb-2 action-btn" data-action="Checklist">
+        <i class="fas fa-list me-2"></i> Checklist
+    </button>
+    <button class="btn btn-outline-primary w-100 text-start action-btn" data-action="Expense Report">
+        <i class="fas fa-file-invoice me-2"></i> Expense Report
+    </button>
+</div>
+{% endblock %}

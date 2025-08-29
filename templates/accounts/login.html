@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AI Field Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --info: #4895ef;
+            --warning: #f72585;
+            --danger: #e63946;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            height: 100vh;
+        }
+        
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            padding: 30px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .logo h2 {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .role-btn {
+            flex: 1;
+            min-width: 60px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .role-btn.active {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .role-btn i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .error-message {
+            color: var(--danger);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <h2><i class="fas fa-brain"></i> FieldAI Manager</h2>
+                <p class="text-muted">Sign in to your account</p>
+            </div>
+            
+            {% if error %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="POST" action="{% url 'accounts:login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Login as</label>
+                    <div class="role-selector">
+                        <div class="role-btn active" data-role="admin">
+                            <i class="fas fa-cog"></i>
+                            <span>Admin</span>
+                        </div>
+                        <div class="role-btn" data-role="manager">
+                            <i class="fas fa-tasks"></i>
+                            <span>Manager</span>
+                        </div>
+                        <div class="role-btn" data-role="engineer">
+                            <i class="fas fa-tools"></i>
+                            <span>Engineer</span>
+                        </div>
+                        <div class="role-btn" data-role="client">
+                            <i class="fas fa-user"></i>
+                            <span>Client</span>
+                        </div>
+                        <div class="role-btn" data-role="accounts">
+                            <i class="fas fa-calculator"></i>
+                            <span>Accounts</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-role" name="role" value="admin">
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="#" class="text-decoration-none">Forgot password?</a>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'accounts:register'%}" class="text-decoration-none">Sign Up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Role selection functionality
+        document.querySelectorAll('.role-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.role-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                document.getElementById('selected-role').value = this.getAttribute('data-role');
+            });
+        });
+    </script>
+</body>
+</html>
