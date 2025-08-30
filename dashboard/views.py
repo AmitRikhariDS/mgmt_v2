@@ -1872,3 +1872,4 @@ def client_detail(request, pk):
         "dashboard/client_detail.html",
         {"client": client, "contacts": contacts, "contact_form": contact_form},
     )
+
