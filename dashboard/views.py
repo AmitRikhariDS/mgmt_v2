@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from accounts.models import GeoLocation
 User = get_user_model()
 @login_required
 def redirect_dashboard(request):
@@ -1505,3 +1506,369 @@ def manager_real_time_dashboard(request):
     }
     
     return render(request, 'dashboard/manager_real_time_dashboard.html', context)
+
+# dashboard/views.py
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import datetime, timedelta
+from accounts.models import Job, TimeLog, Expense, JobNote
+from django.db.models import Q, Sum, Count, Avg
+
+@login_required
+def engineer_dashboard(request):
+    """Engineer dashboard view"""
+    return render(request, 'dashboard/engineer.html')
+
+# dashboard/views.py - Update the engineer_dashboard_data function
+@login_required
+def engineer_dashboard_data(request):
+    """API endpoint for engineer dashboard data"""
+    try:
+        user = request.user
+        today = timezone.now().date()
+        
+        # Get assigned jobs for the current engineer
+        assigned_jobs = Job.objects.filter(
+            assigned_engineer__user=user
+        ).select_related('client', 'service_type')
+        
+        # Get today's jobs
+        todays_jobs = assigned_jobs.filter(scheduled_date__date=today)
+        
+        # Prepare jobs data for response
+        jobs_data = []
+        for job in todays_jobs:
+            jobs_data.append({
+                'id': job.id,
+                'job_id': job.job_id,
+                'scheduled_date': job.scheduled_date.isoformat() if job.scheduled_date else None,
+                'client': job.client.name if job.client else 'Unknown Client',
+                'service_type': job.service_type.name if job.service_type else 'Unknown Service',
+                'location': job.location,
+                'status': job.status,
+                'description': job.description
+            })
+        
+        # Check if there's a current job in progress
+        current_job = assigned_jobs.filter(status='in_progress').first()
+        current_job_data = None
+        if current_job:
+            current_job_data = {
+                'id': current_job.id,
+                'job_id': current_job.job_id,
+                'scheduled_date': current_job.scheduled_date.isoformat() if current_job.scheduled_date else None,
+                'client': current_job.client.name if current_job.client else 'Unknown Client',
+                'service_type': current_job.service_type.name if current_job.service_type else 'Unknown Service',
+                'location': current_job.location,
+                'status': current_job.status,
+                'description': current_job.description
+            }
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'assigned_jobs': assigned_jobs.count(),
+                'todays_jobs': jobs_data,
+                'current_job': current_job_data,
+                'hours_this_week': 0,  # Placeholder - implement actual calculation
+                'pending_approvals': 0,  # Placeholder
+                'completion_rate': 0,  # Placeholder
+                'recent_updates': [],  # Placeholder
+                'performance_metrics': {
+                    'on_time_completion': 0,
+                    'client_rating': 0,
+                    'jobs_this_month': 0,
+                    'earnings_this_week': 0
+                }
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+    
+
+@login_required
+def check_in(request):
+    """Handle engineer check-in"""
+    try:
+        user = request.user
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        
+        # Update engineer's current location
+        if hasattr(user, 'engineer_profile'):
+            profile = user.engineer_profile
+            profile.current_location = f"Lat: {latitude}, Long: {longitude}"
+            profile.latitude = latitude
+            profile.longitude = longitude
+            profile.last_location_update = timezone.now()
+            profile.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Checked in successfully'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+    
+# dashboard/views.py - Add these placeholder views
+@login_required
+def log_time_d(request):
+    return render(request, 'dashboard/log_time.html')
+
+@login_required
+def timesheet(request):
+    return render(request, 'dashboard/timesheet.html')
+
+@login_required
+def expense_report(request):
+    return render(request, 'dashboard/expense_report.html')
+
+@login_required
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, id=job_id, assigned_engineer__user=request.user)
+    return render(request, 'dashboard/eng_job_detail.html', {'job': job})
+
+
+# dashboard/views.py - Add this function
+@login_required
+def update_job_status_d(request):
+    """Update job status"""
+    try:
+        job_id = request.POST.get('job_id')
+        new_status = request.POST.get('status')
+        
+        job = Job.objects.get(
+            id=job_id,
+            assigned_engineer__user=request.user
+        )
+        
+        job.status = new_status
+        job.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Job status updated to {new_status}'
+        })
+        
+    except Job.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Job not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+    
+# dashboard/views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.utils import timezone
+from django.core.paginator import Paginator
+import csv
+
+from .forms import ReportFilterForm, FIELD_CHOICES
+
+# Adjust import if Job is in another app
+try:
+    from dashboard.models import Job
+except Exception:
+    from accounts.models import Job
+
+# Helper to safely read values from job model
+def _get_field_display(job, key):
+    """
+    Map field keys (from FIELD_CHOICES) to actual values on the Job instance.
+    Add mappings depending on your Job model fields.
+    """
+    # safe turns to string and handles None
+    def safe(v):
+        if v is None:
+            return ''
+        if hasattr(v, 'isoformat'):  # datetime/date -> ISO
+            return v.isoformat()
+        return str(v)
+
+    if key == 'job_id':
+        return safe(job.id)
+    if key == 'job_title':
+        # try common names
+        return safe(getattr(job, 'title', getattr(job, 'name', '')))
+    if key == 'client':
+        # prefer a 'name' on client, else str()
+        client = getattr(job, 'client', None)
+        return safe(getattr(client, 'name', client) if client else '')
+    if key == 'engineer':
+        eng = getattr(job, 'engineer', None)
+        return safe(getattr(eng, 'name', eng) if eng else '')
+    if key == 'status':
+        return safe(getattr(job, 'status', ''))
+    if key == 'created_at':
+        return safe(getattr(job, 'created_at', ''))
+    if key == 'scheduled_date':
+        return safe(getattr(job, 'scheduled_date', getattr(job, 'scheduled_on', '')))
+    if key == 'completed_at':
+        return safe(getattr(job, 'completed_at', getattr(job, 'completed_on', '')))
+    if key == 'location':
+        return safe(getattr(job, 'location', getattr(job, 'site_location', '')))
+    if key == 'description':
+        return safe(getattr(job, 'description', ''))
+    if key == 'cost':
+        return safe(getattr(job, 'cost', getattr(job, 'amount', '')))
+    # fallback
+    return safe(getattr(job, key, ''))
+
+
+def _export_csv_response(queryset, selected_fields):
+    """
+    Build CSV HttpResponse for a queryset of Job objects.
+    """
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"manager_report_{timestamp}.csv"
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+
+    # header titles (use FIELD_CHOICES mapping)
+    choices_map = dict(FIELD_CHOICES)
+    headers = [choices_map.get(f, f) for f in selected_fields]
+    writer.writerow(headers)
+
+    # iterate queryset in streaming-friendly way if very large (could use iterator())
+    for job in queryset.iterator():
+        row = [_get_field_display(job, f) for f in selected_fields]
+        writer.writerow(row)
+
+    return response
+
+
+@login_required
+def manager_report(request):
+    #Optional: restrict to PMO/Manager roles only
+    user_role = getattr(request.user, 'role', None)
+    allowed_roles = [ 'Project Manager', 'Admin']
+    if user_role is None and user_role not in allowed_roles:
+        return HttpResponse("Forbidden", status=403)  # quick guard
+
+    form = ReportFilterForm(request.GET or None)
+
+    # base queryset: adjust select_related depending on your FK names
+    queryset = Job.objects.all().select_related('client', 'assigned_engineer')
+
+    if form.is_valid():
+        engineer = form.cleaned_data.get('assigned_engineer')
+        client = form.cleaned_data.get('client')
+        job = form.cleaned_data.get('job')
+        start = form.cleaned_data.get('start_date')
+        end = form.cleaned_data.get('end_date')
+        fields = form.cleaned_data.get('fields') or [c[0] for c in FIELD_CHOICES]
+
+        if engineer:
+            queryset = queryset.filter(engineer=engineer)
+        if client:
+            queryset = queryset.filter(client=client)
+        if job:
+            queryset = queryset.filter(pk=job.pk)
+        if start:
+            # try to filter against created_at; adjust if you want scheduled_date instead
+            queryset = queryset.filter(created_at__date__gte=start)
+        if end:
+            queryset = queryset.filter(created_at__date__lte=end)
+    else:
+        # defaults when form invalid or not provided
+        fields = [c[0] for c in FIELD_CHOICES]
+
+    # If export param present -> produce CSV of all filtered rows
+    if 'export' in request.GET:
+        # export full queryset (no pagination)
+        return _export_csv_response(queryset.order_by('-created_at'), fields)
+
+    # pagination for UI
+    page_size = 25
+    paginator = Paginator(queryset.order_by('-created_at'), page_size)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # prepare rows for display (only for visible page)
+    rows = []
+    for job in page_obj.object_list:
+        rows.append([_get_field_display(job, f) for f in fields])
+
+    # context: include technical names too so the template can render headers
+    choices_map = dict(FIELD_CHOICES)
+    selected_headers = [choices_map.get(f, f) for f in fields]
+
+    context = {
+        'form': form,
+        'jobs_page': page_obj,
+        'rows': rows,
+        'selected_fields': fields,
+        'selected_headers': selected_headers,
+    }
+    return render(request, 'dashboard/manager_report.html', context)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from accounts.models import ClientCompany
+from .forms import ClientCompanyForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from accounts.models import ClientCompany, ClientContact
+from .forms import ClientCompanyForm, ClientContactForm
+
+
+@login_required
+def client_list(request):
+    clients = ClientCompany.objects.all().order_by("-id")
+    paginator = Paginator(clients, 10)
+    page = request.GET.get("page")
+    clients_page = paginator.get_page(page)
+    return render(request, "dashboard/client_list.html", {"clients_page": clients_page})
+
+
+@login_required
+def client_add(request):
+    if request.method == "POST":
+        form = ClientCompanyForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("dashboard:client_list")
+    else:
+        form = ClientCompanyForm()
+    return render(request, "dashboard/client_form.html", {"form": form})
+
+
+@login_required
+def client_detail(request, pk):
+    client = get_object_or_404(ClientCompany, pk=pk)
+    contacts = client.contacts.all()  # from related_name
+
+    if request.method == "POST":
+        contact_form = ClientContactForm(request.POST)
+        if contact_form.is_valid():
+            contact = contact_form.save(commit=False)
+            contact.company = client
+            contact.save()
+            return redirect("dashboard:client_detail", pk=client.pk)
+    else:
+        contact_form = ClientContactForm()
+
+    return render(
+        request,
+        "dashboard/client_detail.html",
+        {"client": client, "contacts": contacts, "contact_form": contact_form},
+    )
