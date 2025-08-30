@@ -1505,3 +1505,124 @@ def manager_real_time_dashboard(request):
     }
     
     return render(request, 'dashboard/manager_real_time_dashboard.html', context)
+# # dashboard/views.py
+# import csv
+# from django.http import JsonResponse, HttpResponse
+# from django.shortcuts import render
+# from django.db.models import Q, Sum, Avg, Count
+# from django.contrib.auth.decorators import login_required, user_passes_test
+# from django.utils import timezone
+# from datetime import datetime, timedelta
+# from dashboard.models import JobReport
+# from accounts.models import ClientCompany, CustomUser
+
+# def is_manager(user):
+#     return user.is_authenticated and user.role == 'manager'
+
+# # dashboard/views.py
+# import csv
+# from django.http import JsonResponse, HttpResponse
+# from django.shortcuts import render
+# from django.db.models import Q, Sum, Avg, Count
+# from django.contrib.auth.decorators import login_required, user_passes_test
+# from django.utils import timezone
+# from datetime import datetime
+# from .models import JobReport
+
+# def is_manager(user):
+#     return user.is_authenticated and user.role == 'manager'
+
+# @login_required
+# @user_passes_test(is_manager)
+# def manager_report_dashboard(request):
+#     """Render the manager report dashboard"""
+#     # Import here to avoid circular imports
+#     from accounts.models import ClientCompany
+#     from django.contrib.auth import get_user_model
+    
+#     User = get_user_model()
+    
+#     # Get all clients and engineers for filter dropdowns
+#     clients = ClientCompany.objects.all().order_by('name')
+#     engineers = User.objects.filter(role='engineer').order_by('first_name')
+    
+#     context = {
+#         'clients': clients,
+#         'engineers': engineers,
+#     }
+#     return render(request, 'dashboard/manager_report.html', context)
+
+# @login_required
+# @user_passes_test(is_manager)
+# def get_report_data(request):
+#     """API endpoint to fetch filtered report data"""
+#     try:
+#         # Get filter parameters
+#         job_id = request.GET.get('job_id', '').strip()
+#         client_id = request.GET.get('client_id', '')
+#         engineer_id = request.GET.get('engineer_id', '')
+#         status = request.GET.get('status', '')
+#         start_date = request.GET.get('start_date', '')
+#         end_date = request.GET.get('end_date', '')
+        
+#         # Build query
+#         query = Q()
+        
+#         if job_id:
+#             query &= Q(job_id__icontains=job_id)
+        
+#         if client_id:
+#             query &= Q(client_id=client_id)
+        
+#         if engineer_id:
+#             query &= Q(engineer_id=engineer_id)
+        
+#         if status:
+#             query &= Q(status=status)
+        
+#         if start_date:
+#             try:
+#                 start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+#                 query &= Q(date__gte=start_date_obj)
+#             except ValueError:
+#                 pass
+        
+#         if end_date:
+#             try:
+#                 end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+#                 query &= Q(date__lte=end_date_obj)
+#             except ValueError:
+#                 pass
+        
+#         # Fetch data with related objects
+#         reports = JobReport.objects.filter(query)\
+#             .select_related('client', 'engineer')\
+#             .order_by('-date')
+        
+#         # Prepare response data
+#         report_data = []
+#         for report in reports:
+#             report_data.append({
+#                 'id': report.id,
+#                 'job_id': report.job_id,
+#                 'client': report.client.name,
+#                 'engineer': f"{report.engineer.first_name} {report.engineer.last_name}",
+#                 'date': report.date.isoformat(),
+#                 'hours_worked': float(report.hours_worked),
+#                 'status': report.status,
+#                 'revenue': float(report.revenue),
+#                 'description': report.description
+#             })
+        
+#         return JsonResponse({
+#             'success': True,
+#             'data': report_data,
+#             'total_count': reports.count()
+#         })
+        
+#     except Exception as e:
+#         return JsonResponse({
+#             'success': False,
+#             'error': str(e)
+#         }, status=500)
+

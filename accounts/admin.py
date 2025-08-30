@@ -135,3 +135,22 @@ admin.site.register(GeoLocation, GeoLocationAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(ServiceContract, ServiceContractAdmin)
 admin.site.register(ContractService)
+
+
+# dashboard/admin.py
+# accounts/admin.py
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from accounts.models import CustomUser, ClientCompany, ClientContact, EngineerProfile, Skill, ServiceType, Job, JobNote, TimeLog, Expense, Invoice, InvoiceItem, Payment, GeoLocation, Notification, ServiceContract, ContractService, JobReport
+
+@admin.register(JobReport)
+class JobReportAdmin(admin.ModelAdmin):
+    list_display = ['job_id', 'client', 'engineer_name', 'date', 'hours_worked', 'status', 'revenue']
+    list_filter = ['status', 'date', 'client']
+    search_fields = ['job_id', 'client__name', 'engineer__username']
+    readonly_fields = ['created_at', 'updated_at']
+    list_per_page = 20
+    
+    def engineer_name(self, obj):
+        return f"{obj.engineer.first_name} {obj.engineer.last_name}"
+    engineer_name.short_description = 'Engineer'

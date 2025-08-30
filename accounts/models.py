@@ -1,5 +1,4 @@
-from django.contrib.auth.models import AbstractUser, Group
-from django.db import models
+# accounts/models.py
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.utils import timezone
@@ -40,8 +39,8 @@ class ClientCompany(models.Model):
         return self.name
 
 class ClientContact(models.Model):
-    company = models.ForeignKey(ClientCompany, on_delete=models.CASCADE, related_name='contacts')
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'client'})
+    company = models.ForeignKey('ClientCompany', on_delete=models.CASCADE, related_name='contacts')
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'client'})
     position = models.CharField(max_length=100)
     is_primary = models.BooleanField(default=False)
     
@@ -56,7 +55,7 @@ class EngineerProfile(models.Model):
         ('lead', 'Lead'),
     )
     
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'engineer'})
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'engineer'})
     employee_id = models.CharField(max_length=20, unique=True)
     skills = models.ManyToManyField('Skill', blank=True)
     skill_level = models.CharField(max_length=10, choices=SKILL_LEVEL, default='mid')
@@ -110,10 +109,10 @@ class Job(models.Model):
     job_id = models.CharField(max_length=20, unique=True, default=uuid.uuid4)
     title = models.CharField(max_length=200)
     description = models.TextField()
-    service_type = models.ForeignKey(ServiceType, on_delete=models.PROTECT)
-    client = models.ForeignKey(ClientCompany, on_delete=models.CASCADE)
-    client_contact = models.ForeignKey(ClientContact, on_delete=models.SET_NULL, null=True, blank=True)
-    assigned_engineer = models.ForeignKey(EngineerProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_jobs')
+    service_type = models.ForeignKey('ServiceType', on_delete=models.PROTECT)
+    client = models.ForeignKey('ClientCompany', on_delete=models.CASCADE)
+    client_contact = models.ForeignKey('ClientContact', on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_engineer = models.ForeignKey('EngineerProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_jobs')
     priority = models.CharField(max_length=10, choices=PRIORITY_LEVEL, default='medium')
     status = models.CharField(max_length=20, choices=JOB_STATUS, default='pending')
     scheduled_date = models.DateTimeField()
@@ -123,11 +122,11 @@ class Job(models.Model):
     location = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='created_jobs')
+    created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='created_jobs')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_updated = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_jobs')
+    updated_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_jobs')
     
     def save(self, *args, **kwargs):
         # Set updated_by if not set during creation
@@ -145,8 +144,8 @@ class JobNote(models.Model):
         ('image', 'Image Note'),
     )
     
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='notes')
-    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    job = models.ForeignKey('Job', on_delete=models.CASCADE, related_name='notes')
+    author = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     note_type = models.CharField(max_length=20, choices=NOTE_TYPE, default='text')
     content = models.TextField()
     audio_file = models.FileField(upload_to='job_notes/audio/', null=True, blank=True)
@@ -157,14 +156,14 @@ class JobNote(models.Model):
         return f"Note for {self.job.job_id} by {self.author.username}"
     
 class TimeLog(models.Model):
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='time_logs')
-    engineer = models.ForeignKey(EngineerProfile, on_delete=models.CASCADE)
+    job = models.ForeignKey('Job', on_delete=models.CASCADE, related_name='time_logs')
+    engineer = models.ForeignKey('EngineerProfile', on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     duration = models.DurationField(null=True, blank=True)  # in minutes
     description = models.TextField(blank=True)
     is_approved = models.BooleanField(default=False)
-    approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_time_logs')
+    approved_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_time_logs')
     approved_at = models.DateTimeField(null=True, blank=True)
     
     def save(self, *args, **kwargs):
@@ -185,20 +184,21 @@ class Expense(models.Model):
         ('other', 'Other'),
     )
     
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='expenses')
-    engineer = models.ForeignKey(EngineerProfile, on_delete=models.CASCADE)
+    job = models.ForeignKey('Job', on_delete=models.CASCADE, related_name='expenses')
+    engineer = models.ForeignKey('EngineerProfile', on_delete=models.CASCADE)
     category = models.CharField(max_length=20, choices=EXPENSE_CATEGORIES, default='other')
     description = models.TextField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     receipt = models.ImageField(upload_to='expense_receipts/', null=True, blank=True)
     date_incurred = models.DateField(default=timezone.now)
     is_approved = models.BooleanField(default=False)
-    approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_expenses')
+    approved_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_expenses')
     approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"{self.category} - ${self.amount} for {self.job.job_id}"
+
 class Invoice(models.Model):
     INVOICE_STATUS = (
         ('draft', 'Draft'),
@@ -209,8 +209,8 @@ class Invoice(models.Model):
     )
     
     invoice_number = models.CharField(max_length=20, unique=True, default=uuid.uuid4)
-    job = models.OneToOneField(Job, on_delete=models.CASCADE, related_name='invoice')
-    client = models.ForeignKey(ClientCompany, on_delete=models.CASCADE)
+    job = models.OneToOneField('Job', on_delete=models.CASCADE, related_name='invoice')
+    client = models.ForeignKey('ClientCompany', on_delete=models.CASCADE)
     issue_date = models.DateField()
     due_date = models.DateField()
     status = models.CharField(max_length=20, choices=INVOICE_STATUS, default='draft')
@@ -220,7 +220,7 @@ class Invoice(models.Model):
     notes = models.TextField(blank=True)
     sent_date = models.DateTimeField(null=True, blank=True)
     paid_date = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='created_invoices')
+    created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='created_invoices')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -234,7 +234,7 @@ class Invoice(models.Model):
         return f"{self.invoice_number} - {self.client.name}"
 
 class InvoiceItem(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='items')
     description = models.CharField(max_length=200)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -256,20 +256,20 @@ class Payment(models.Model):
         ('digital_wallet', 'Digital Wallet'),
     )
     
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
+    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD)
     payment_date = models.DateTimeField()
     reference_number = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
-    processed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='processed_payments')
+    processed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='processed_payments')
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"Payment of ${self.amount} for {self.invoice.invoice_number}"
 
 class GeoLocation(models.Model):
-    engineer = models.ForeignKey(EngineerProfile, on_delete=models.CASCADE, related_name='locations')
+    engineer = models.ForeignKey('EngineerProfile', on_delete=models.CASCADE, related_name='locations')
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     accuracy = models.FloatField(null=True, blank=True)  # in meters
@@ -294,7 +294,7 @@ class Notification(models.Model):
         ('alert', 'Alert'),
     )
     
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='notifications')
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPE)
     title = models.CharField(max_length=200)
     message = models.TextField()
@@ -318,7 +318,7 @@ class ServiceContract(models.Model):
     )
     
     contract_number = models.CharField(max_length=20, unique=True, default=uuid.uuid4)
-    client = models.ForeignKey(ClientCompany, on_delete=models.CASCADE)
+    client = models.ForeignKey('ClientCompany', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     start_date = models.DateField()
@@ -326,7 +326,7 @@ class ServiceContract(models.Model):
     status = models.CharField(max_length=20, choices=CONTRACT_STATUS, default='draft')
     value = models.DecimalField(max_digits=12, decimal_places=2)
     terms = models.TextField(blank=True)
-    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='created_contracts')
+    created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='created_contracts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -335,21 +335,13 @@ class ServiceContract(models.Model):
             # Generate a unique contract number
             self.contract_number = f"CNTR-{uuid.uuid4().hex[:8].upper()}"
         super().save(*args, **kwargs)
-    def get_related_expense(self):
-        from .models import Expense
-        try:
-            if self.related_object_type == 'expense' and self.related_object_id:
-                return Expense.objects.get(id=self.related_object_id)
-        except Expense.DoesNotExist:
-            return None
-        return None
     
     def __str__(self):
         return f"{self.contract_number} - {self.client.name}"
 
 class ContractService(models.Model):
-    contract = models.ForeignKey(ServiceContract, on_delete=models.CASCADE, related_name='services')
-    service_type = models.ForeignKey(ServiceType, on_delete=models.PROTECT)
+    contract = models.ForeignKey('ServiceContract', on_delete=models.CASCADE, related_name='services')
+    service_type = models.ForeignKey('ServiceType', on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -360,3 +352,45 @@ class ContractService(models.Model):
     
     def __str__(self):
         return f"{self.service_type.name} for {self.contract.contract_number}"
+    
+# accounts/models.py
+# Add this at the end of the file, after all other models
+
+class JobReport(models.Model):
+    STATUS_CHOICES = [
+        ('completed', 'Completed'),
+        ('in_progress', 'In Progress'),
+        ('pending', 'Pending'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    job_id = models.CharField(max_length=100, unique=True)
+    client = models.ForeignKey('ClientCompany', on_delete=models.CASCADE, related_name='reports')
+    engineer = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='assigned_reports')
+    date = models.DateField()
+    hours_worked = models.DecimalField(max_digits=5, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    revenue = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['status']),
+            models.Index(fields=['client']),
+            models.Index(fields=['engineer']),
+        ]
+
+    def __str__(self):
+        return f"{self.job_id} - {self.client.name}"
+
+    @property
+    def engineer_name(self):
+        return f"{self.engineer.first_name} {self.engineer.last_name}"
+
+    @property
+    def client_name(self):
+        return self.client.name
