@@ -10,7 +10,7 @@
 #     industry = models.CharField(max_length=100, blank=True, null=True)
 #     website = models.URLField(blank=True, null=True)
 #     is_active = models.BooleanField(default=True)
-
+# 1234
 #     def __str__(self):
 #         return self.name
 
