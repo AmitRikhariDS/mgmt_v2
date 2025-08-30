@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
   workflow_dispatch:
 
 env:
@@ -67,7 +67,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: http://${{ secrets.REMOTE_HOST }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,11 +77,11 @@ jobs:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
       - name: Copy docker-compose and deploy script to remote
+        env:
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
         run: |
           scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} docker-compose.prod.yml ${REMOTE_USER}@${{ secrets.REMOTE_HOST }}:/home/deploy/app/docker-compose.yml
           scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} deploy/deploy.sh ${REMOTE_USER}@${{ secrets.REMOTE_HOST }}:/home/deploy/app/deploy.sh
-        env:
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
 
       - name: Run remote deploy
         run: |
