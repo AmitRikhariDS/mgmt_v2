@@ -31,29 +31,50 @@ def logout_view(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('accounts:login')
 
+# accounts/views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.contrib import messages
+
+User = get_user_model()
+
 def register_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            # Set default role to engineer
-            user.role = 'engineer'
-            user.save()
-            
-            # Create corresponding profile based on role
-            if user.role == 'engineer':
-                EngineerProfile.objects.create(
-                    user=user,
-                    employee_id=f"ENG-{user.id:04d}",
-                    hourly_rate=50.00
-                )
-            
-            messages.success(request, 'Account created successfully. Please log in.')
-            return redirect('accounts:login')
-    else:
-        form = UserCreationForm()
-    
-    return render(request, 'accounts/register.html', {'form': form})
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        role = request.POST.get("role")  # client or engineer
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect("register")
+
+        # ✅ Create user in CustomUser
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            role=role  # assuming your CustomUser has a role field
+        )
+
+        # ✅ Add user to respective group
+        try:
+            group = Group.objects.get(name=role.capitalize())  # "Client" or "Engineer"
+        except Group.DoesNotExist:
+            group = Group.objects.create(name=role.capitalize())
+        user.groups.add(group)
+
+        login(request, user)
+        messages.success(request, f"Account created successfully as {role}.")
+        return redirect('accounts:login') # redirect after signup
+
+    return render(request, "accounts/register.html")
 
 @login_required
 def profile_view(request):

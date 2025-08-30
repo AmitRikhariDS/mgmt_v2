@@ -686,21 +686,27 @@ def add_job_note_manager(request, job_id):
     
     return redirect('dashboard:job_detail', job_id=job.id)
 
+# @login_required
+# def job_detail(request, job_id):
+#     if request.user.role != 'manager':
+#         messages.error(request, 'You do not have permission to access this page.')
+#         return redirect('dashboard:redirect_dashboard')
+    
+#     job = get_object_or_404(Job, id=job_id)
+#     available_engineers = EngineerProfile.objects.filter(is_available=True)
+    
+#     context = {
+#         'job': job,
+#         'available_engineers': available_engineers,
+#     }
+    
+#     return render(request, 'dashboard/job_detail.html', context)
 @login_required
 def job_detail(request, job_id):
-    if request.user.role != 'manager':
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard:redirect_dashboard')
-    
-    job = get_object_or_404(Job, id=job_id)
-    available_engineers = EngineerProfile.objects.filter(is_available=True)
-    
-    context = {
-        'job': job,
-        'available_engineers': available_engineers,
-    }
-    
-    return render(request, 'dashboard/job_detail.html', context)
+    job = get_object_or_404(Job, job_id=job_id)
+    return render(request, "dashboard/job_detail.html", {"job": job})
+
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -1305,66 +1311,66 @@ def engineer_job_detail(request, job_id):
     }
     
     return render(request, 'dashboard/engineer_job_detail.html', context)
-@login_required
-def manager_job_updates_real_time(request):
-    if request.user.role != 'manager':
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard:redirect_dashboard')
+# @login_required
+# def manager_job_updates_real_time(request):
+#     if request.user.role != 'manager':
+#         messages.error(request, 'You do not have permission to access this page.')
+#         return redirect('dashboard:redirect_dashboard')
     
-    # Get the latest update timestamp from the request
-    last_update = request.GET.get('last_update')
+#     # Get the latest update timestamp from the request
+#     last_update = request.GET.get('last_update')
     
-    if last_update:
-        try:
-            last_update_dt = timezone.datetime.fromisoformat(last_update.replace('Z', '+00:00'))
-            # Get jobs updated since the last check
-            updated_jobs = Job.objects.filter(
-                last_updated__gt=last_update_dt
-            ).order_by('-last_updated')
-        except (ValueError, TypeError):
-            updated_jobs = Job.objects.none()
-    else:
-        # Get all jobs ordered by most recent update
-        updated_jobs = Job.objects.all().order_by('-last_updated')[:20]
+#     if last_update:
+#         try:
+#             last_update_dt = timezone.datetime.fromisoformat(last_update.replace('Z', '+00:00'))
+#             # Get jobs updated since the last check
+#             updated_jobs = Job.objects.filter(
+#                 last_updated__gt=last_update_dt
+#             ).order_by('-last_updated')
+#         except (ValueError, TypeError):
+#             updated_jobs = Job.objects.none()
+#     else:
+#         # Get all jobs ordered by most recent update
+#         updated_jobs = Job.objects.all().order_by('-last_updated')[:20]
     
-    # Get recent notifications
-    recent_notifications = Notification.objects.filter(
-        user=request.user,
-        notification_type__in=['job_updated', 'job_assigned', 'expense_submitted', 'location_update']
-    ).order_by('-created_at')[:10]
+#     # Get recent notifications
+#     recent_notifications = Notification.objects.filter(
+#         user=request.user,
+#         notification_type__in=['job_updated', 'job_assigned', 'expense_submitted', 'location_update']
+#     ).order_by('-created_at')[:10]
     
-    # Prepare response data
-    response_data = {
-        'current_time': timezone.now().isoformat(),
-        'updated_jobs': [
-            {
-                'id': job.id,
-                'job_id': job.job_id,
-                'title': job.title,
-                'client': job.client.name,
-                'status': job.get_status_display(),
-                'priority': job.get_priority_display(),
-                'assigned_engineer': job.assigned_engineer.user.get_full_name() if job.assigned_engineer else 'Unassigned',
-                'last_updated': job.last_updated.isoformat(),
-                'updated_by': job.updated_by.get_full_name() if job.updated_by else 'System',
-            }
-            for job in updated_jobs
-        ],
-        'notifications': [
-            {
-                'id': notification.id,
-                'title': notification.title,
-                'message': notification.message,
-                'type': notification.notification_type,
-                'created_at': notification.created_at.isoformat(),
-                'related_object_type': notification.related_object_type,
-                'related_object_id': notification.related_object_id,
-            }
-            for notification in recent_notifications
-        ]
-    }
+#     # Prepare response data
+#     response_data = {
+#         'current_time': timezone.now().isoformat(),
+#         'updated_jobs': [
+#             {
+#                 'id': job.id,
+#                 'job_id': job.job_id,
+#                 'title': job.title,
+#                 'client': job.client.name,
+#                 'status': job.get_status_display(),
+#                 'priority': job.get_priority_display(),
+#                 'assigned_engineer': job.assigned_engineer.user.get_full_name() if job.assigned_engineer else 'Unassigned',
+#                 'last_updated': job.last_updated.isoformat(),
+#                 'updated_by': job.updated_by.get_full_name() if job.updated_by else 'System',
+#             }
+#             for job in updated_jobs
+#         ],
+#         'notifications': [
+#             {
+#                 'id': notification.id,
+#                 'title': notification.title,
+#                 'message': notification.message,
+#                 'type': notification.notification_type,
+#                 'created_at': notification.created_at.isoformat(),
+#                 'related_object_type': notification.related_object_type,
+#                 'related_object_id': notification.related_object_id,
+#             }
+#             for notification in recent_notifications
+#         ]
+#     }
     
-    return JsonResponse(response_data)
+#     return JsonResponse(response_data)
 @login_required
 def manager_job_updates(request):
     if request.user.role != 'manager':
@@ -1872,4 +1878,98 @@ def client_detail(request, pk):
         "dashboard/client_detail.html",
         {"client": client, "contacts": contacts, "contact_form": contact_form},
     )
+
+
+@login_required
+def manager_job_updates_real_time_page(request):
+    if request.user.role != 'manager':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard:redirect_dashboard')
+
+    updated_jobs = Job.objects.all().order_by('-last_updated')[:20]
+    recent_notifications = Notification.objects.filter(
+        user=request.user,
+        notification_type__in=['job_updated', 'job_assigned', 'expense_submitted', 'location_update']
+    ).order_by('-created_at')[:10]
+
+    context = {
+        'updated_jobs': [
+            {
+                'id': job.id,
+                'job_id': job.job_id,
+                'title': job.title,
+                'client': job.client.name,
+                'status': job.get_status_display(),
+                'priority': job.get_priority_display(),
+                'assigned_engineer': job.assigned_engineer.user.get_full_name() if job.assigned_engineer else 'Unassigned',
+                'last_updated': job.last_updated,
+                'updated_by': job.updated_by.get_full_name() if job.updated_by else 'System',
+            }
+            for job in updated_jobs
+        ],
+        'notifications': [
+            {
+                'id': n.id,
+                'title': n.title,
+                'message': n.message,
+                'type': n.notification_type,
+                'created_at': n.created_at,
+            }
+            for n in recent_notifications
+        ]
+    }
+    return render(request, "dashboard/manager_job_updates_real_time.html", context)
+
+
+from django.utils.crypto import get_random_string
+from accounts.models import Expense, Invoice, EngineerProfile
+#from notifications.models import Notification
+from .forms import InvoiceForm
+
+# @login_required
+# def generate_invoice(request, expense_id):
+#     if request.user.role != "accounts":
+#         messages.error(request, "Only Accounts team can generate invoices.")
+#         return redirect("dashboard:redirect_dashboard")
+
+#     expense = Expense.objects.get(id=expense_id)
+#     engineer = expense.engineer
+#     client = expense.client
+
+#     try:
+#         invoice = expense.invoice
+#     except Invoice.DoesNotExist:
+#         invoice = None
+
+#     if request.method == "POST":
+#         form = InvoiceForm(request.POST, instance=invoice)
+#         if form.is_valid():
+#             invoice = form.save(commit=False)
+#             invoice.expense = expense
+#             invoice.client = client
+#             invoice.engineer = engineer
+#             invoice.created_by = request.user
+#             invoice.invoice_id = invoice.invoice_id or f"INV-{get_random_string(6).upper()}"
+#             invoice.calculate_total()
+#             invoice.status = "draft"
+#             invoice.save()
+
+#             # Notify Engineer that invoice is generated
+#             Notification.objects.create(
+#                 user=engineer.user,
+#                 title="Invoice Generated",
+#                 message=f"An invoice ({invoice.invoice_id}) has been generated for your expense submission.",
+#                 notification_type="invoice_generated",
+#                 related_object_type="invoice",
+#                 related_object_id=invoice.id,
+#             )
+
+#             messages.success(request, "Invoice generated successfully!")
+#             return redirect("dashboard:accounts_notifications")
+#     else:
+#         # Pre-fill rate_per_hour from backend (Engineer profile)
+#         initial_data = {"rate_per_hour": engineer.rate_per_hour}
+#         form = InvoiceForm(instance=invoice, initial=initial_data)
+
+#     return render(request, "dashboard/invoice_form.html", {"form": form, "expense": expense})
 

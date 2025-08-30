@@ -25,7 +25,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
 
-class ClientCompany(models.Model):
+class ClientCompany(models.Model):   # or maybe named Client?
     name = models.CharField(max_length=255)
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
@@ -34,12 +34,10 @@ class ClientCompany(models.Model):
     website = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-    # Fix timestamps
-    created_at = models.DateTimeField(auto_now_add=True)  # auto-fill when created
-    updated_at = models.DateTimeField(auto_now=True)      # auto-fill on update
-
     def __str__(self):
         return self.name
+
+
 class ClientContact(models.Model):
     company = models.ForeignKey(ClientCompany, on_delete=models.CASCADE, related_name='contacts')
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, limit_choices_to={'role': 'client'})
@@ -224,12 +222,17 @@ class Invoice(models.Model):
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='created_invoices')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    hours_worked = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    rate_per_hour = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     def save(self, *args, **kwargs):
+        if self.hours_worked and self.rate_per_hour:
+            self.subtotal = self.hours_worked * self.rate_per_hour
+            self.total_amount = self.subtotal + self.tax_amount
         if not self.invoice_number:
-            # Generate a unique invoice number
             self.invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"
         super().save(*args, **kwargs)
+
     
     def __str__(self):
         return f"{self.invoice_number} - {self.client.name}"

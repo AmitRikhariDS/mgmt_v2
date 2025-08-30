@@ -118,3 +118,15 @@ class ClientContactForm(forms.ModelForm):
             "position": forms.TextInput(attrs={"class": "form-control"}),
             "is_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+from django import forms
+from accounts.models import Invoice
+
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ["hours_worked", "rate_per_hour"]
+        widgets = {
+            "hours_worked": forms.NumberInput(attrs={"class": "form-control"}),
+            "rate_per_hour": forms.NumberInput(attrs={"class": "form-control"}),
+        }

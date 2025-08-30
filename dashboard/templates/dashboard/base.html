@@ -260,7 +260,7 @@
                             <ul class="navbar-nav">
                                 {% if user.role == 'manager' or user.role == 'accounts' %}
                                 <li class="nav-item">
-                                    <a class="nav-link position-relative" href="{% if user.role == 'manager' %}{% url 'dashboard:manager_notifications' %}{% elif user.role == 'accounts' %}{% url 'dashboard:accounts_notifications' %}{% else %}#{% endif %}">
+                                    <a class="nav-link position-relative" hhref="{% if user.role == 'manager' %}{% url 'dashboard:manager_notifications' %}{% elif user.role == 'accounts' %}{% url 'dashboard:accounts_notifications' %}{% else %}#{% endif %}">
                                         <i class="fas fa-bell"></i>
                                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
                                               id="notificationBadge">
@@ -269,7 +269,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-    <a class="nav-link" href="{% url 'dashboard:manager_real_time_dashboard' %}">
+    <a class="nav-link" href="{% url 'dashboard:manager_real_time_updates_page' %}">
         <i class="fas fa-bolt me-2"></i> Real-Time Updates
     </a>
 </li>
