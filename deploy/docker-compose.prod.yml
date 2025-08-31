@@ -1,22 +1,23 @@
-# docker-compose.prod.yml
-version: "3.8"
+version: "3.9"
+
 services:
   web:
-    image: ${DOCKER_HUB_REPO}:${IMAGE_TAG:-latest}
-    restart: unless-stopped
-    env_file:
-      - .env.production
-    volumes:
-      - static_volume:/app/static
-      - media_volume:/app/media
+    image: ${IMAGE_REPO:-yourdockerhubuser/mgmt_v2}:latest
+    env_file: .env.production
     ports:
       - "8000:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    restart: unless-stopped
+    volumes:
+      - static:/app/staticfiles
+      - media:/app/media
+    environment:
+      # Optional tuning overrides
+      PORT: "8000"
+      WORKERS: "3"
+      THREADS: "2"
+      AUTO_MIGRATE: "true"
+      AUTO_COLLECTSTATIC: "true"
 
 volumes:
-  static_volume:
-  media_volume:
+  static:
+  media:

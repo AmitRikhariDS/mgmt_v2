@@ -68,8 +68,7 @@ jobs:
     environment:
       name: production
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Start SSH agent and add key
         uses: webfactory/ssh-agent@v0.9.0
@@ -78,19 +77,19 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "echo '✅ Connected:' $(hostname) as $(whoami)"
 
       - name: Create app directory on remote
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} 'mkdir -p /home/${{ secrets.REMOTE_USER }}/app'
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /home/${{ secrets.REMOTE_USER }}/app"
 
       - name: Copy docker-compose and deploy script to remote
         run: |
           scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} \
             deploy/docker-compose.prod.yml \
-            ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app/docker-compose.yml && \
+            ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app/docker-compose.yml
           scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} \
             deploy/deploy.sh \
             ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app/deploy.sh
@@ -99,4 +98,4 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
           ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
-          "cd /home/${{ secrets.REMOTE_USER }}/app && echo 'Starting deploy.sh' && chmod +x deploy.sh && ./deploy.sh"
+          "cd /home/${{ secrets.REMOTE_USER }}/app && chmod +x deploy.sh && ./deploy.sh"
