@@ -79,12 +79,12 @@ jobs:
       - name: Test SSH connection
         run: |
           ssh -vvv -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "hostname && whoami"
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} 'hostname && whoami'
 
       - name: Create app directory on remote
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /home/${{ secrets.REMOTE_USER }}/app"
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} 'mkdir -p /home/${{ secrets.REMOTE_USER }}/app'
 
       - name: Copy docker-compose and deploy script to remote
         run: |
@@ -99,4 +99,4 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
           ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
-          "cd /home/${{ secrets.REMOTE_USER }}/app && echo '🚀 Starting deploy.sh' && chmod +x deploy.sh && ./deploy.sh"
+          "cd /home/${{ secrets.REMOTE_USER }}/app && echo 'Starting deploy.sh' && chmod +x deploy.sh && ./deploy.sh"
