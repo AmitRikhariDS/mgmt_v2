@@ -29,7 +29,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
-    return redirect('accounts:login')
+    return redirect('dashboard:home')
 
 # accounts/views.py
 from django.shortcuts import render, redirect
