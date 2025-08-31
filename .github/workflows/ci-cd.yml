@@ -80,7 +80,7 @@ jobs:
         env:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
         run: |
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} docker-compose.prod.yml ${REMOTE_USER}@${{ secrets.REMOTE_HOST }}:/home/deploy/app/docker-compose.yml
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} deploy/docker-compose.prod.yml ${REMOTE_USER}@${{ secrets.REMOTE_HOST }}:/home/deploy/app/docker-compose.yml
           scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} deploy/deploy.sh ${REMOTE_USER}@${{ secrets.REMOTE_HOST }}:/home/deploy/app/deploy.sh
 
       - name: Run remote deploy
