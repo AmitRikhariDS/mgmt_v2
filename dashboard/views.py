@@ -17,6 +17,12 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 # @login_required  # optional, only logged-in users can see home
+
+
+
+def custom_page_not_found(request, exception):
+    return render(request, "errors/404.html", status=404)
+
 def home_view(request):
     return render(request, 'dashboard/home.html')
 
