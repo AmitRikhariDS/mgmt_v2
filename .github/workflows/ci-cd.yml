@@ -79,7 +79,7 @@ jobs:
       - name: Test SSH connection
         run: |
           ssh -vvv -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} 'hostname && whoami'
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}
 
       - name: Create app directory on remote
         run: |
