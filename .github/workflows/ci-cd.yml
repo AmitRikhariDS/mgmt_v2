@@ -79,7 +79,7 @@ jobs:
       - name: Test SSH connection
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
-          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "echo ✅ SSH connected successfully"
+          ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "echo 'SSH connected successfully'"
 
       - name: Create app directory on remote
         run: |
