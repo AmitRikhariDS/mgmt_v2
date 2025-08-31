@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]   # Change if you want another branch
+    branches: [ dev ]   # Change if you want another branch
 
 jobs:
   deploy:
