@@ -42,11 +42,10 @@ jobs:
             docker stop mgmt_app || true
             docker rm mgmt_app || true
 
-            # Run migrations before starting container
-            docker run --rm \
-              -e DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
-              -e ALLOWED_HOSTS="13.62.67.73" \
-              $IMAGE_NAME python manage.py migrate
+             docker run --rm \
+            -e DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
+            -e ALLOWED_HOSTS="13.62.67.73" \
+            $IMAGE_NAME python manage.py migrate --fake
 
             # Start new container
             docker run -d -p 8000:8000 \
