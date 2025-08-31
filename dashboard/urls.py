@@ -4,6 +4,7 @@ from . import views
 app_name = 'dashboard'
 
 urlpatterns = [
+    path('', views.home_view, name='home'),  # root URL
     path('', views.redirect_dashboard, name='redirect_dashboard'),
     path('admin/', views.admin_dashboard, name='admin_dashboard'),
     path('manager/', views.manager_dashboard, name='manager_dashboard'),

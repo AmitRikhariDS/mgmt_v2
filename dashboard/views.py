@@ -12,6 +12,14 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from accounts.models import GeoLocation
 User = get_user_model()
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required  # optional, only logged-in users can see home
+def home_view(request):
+    return render(request, 'home.html')
+
 @login_required
 def redirect_dashboard(request):
     user_role = request.user.role

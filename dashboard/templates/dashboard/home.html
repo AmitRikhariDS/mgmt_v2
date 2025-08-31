@@ -1,0 +1,26 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}   <!-- Reuse your existing base layout -->
+
+{% block content %}
+<div class="container" style="margin-top:50px;">
+    <h1 class="text-center">Welcome to MGMT Tool</h1>
+    <p class="text-center mt-3">Manage clients, engineers, jobs, and invoices efficiently.</p>
+
+    <div class="features mt-5">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <h3>Client Management</h3>
+                <p>Easily manage all client details and track interactions.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Job Reports</h3>
+                <p>View detailed job reports, status updates, and analytics.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Invoice Tracking</h3>
+                <p>Generate and track invoices efficiently with reminders.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
