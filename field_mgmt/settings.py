@@ -11,9 +11,9 @@ SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 DEBUG = False
 
-#ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-ALLOWED_HOSTS= ['127.0.0.1']
+#ALLOWED_HOSTS= ['127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
