@@ -82,12 +82,21 @@ jobs:
           echo "REMOTE_PORT=${{ secrets.REMOTE_PORT }}"
 
       - name: Copy docker-compose and deploy script to remote
-        env:
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
         run: |
-          ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "mkdir -p /home/${{ secrets.REMOTE_USER }}/app"
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} deploy/docker-compose.prod.yml ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app/docker-compose.yml
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} deploy/deploy.sh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app/deploy.sh
+            ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
+              ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
+              "mkdir -p ~/app"
+
+            scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} \
+              deploy/docker-compose.prod.yml \
+              ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/app/docker-compose.yml
+
+            scp -o StrictHostKeyChecking=no -P ${{ secrets.REMOTE_PORT }} \
+              deploy/deploy.sh \
+              ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/app/deploy.sh
       - name: Run remote deploy
         run: |
-          ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cd /home/deploy/app && chmod +x deploy.sh && ./deploy.sh"
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.REMOTE_PORT }} \
+            ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} \
+            "cd ~/app && chmod +x deploy.sh && ./deploy.sh"
+
