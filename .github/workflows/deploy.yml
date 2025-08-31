@@ -48,5 +48,27 @@ jobs:
             $IMAGE_NAME python manage.py migrate --fake
 
             # Start new container
-            docker run -d -p 8000:8000 --name mgmt_app -e ALLOWED_HOSTS="13.62.67.73,localhost" $IMAGE_NAME
+            docker run -d -p 8000:8000 --name mgmt_app -e DJANGO_ALLOWED_HOSTS="13.62.67.73,localhost" $IMAGE_NAME
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "CI/CD Deployment Status"
+          body: |
+            ✅ Deployment Completed Successfully
+
+            Branch: ${{ github.ref }}
+            Environment: AWS EC2
+            Application URL: http://13.62.67.73:8000/login/
+
+            The latest changes have been deployed, and the application is now live. 
+            Please verify the functionality and monitor for any issues.
+
+            Regards,
+            DevOps CI/CD Pipeline
+          to: "amitrikhari011@example.com"
+          from: "techyink011@example.com"
 

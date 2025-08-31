@@ -13,7 +13,7 @@ COPY . .
 
 # Expose Django port
 EXPOSE 8000
-ENV ALLOWED_HOSTS=127.0.0.1
+ENV DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1"
 
 # Start server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
