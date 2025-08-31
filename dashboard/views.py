@@ -1987,3 +1987,81 @@ from .forms import InvoiceForm
 
 #     return render(request, "dashboard/invoice_form.html", {"form": form, "expense": expense})
 
+# dashboard/views.py
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.http import HttpResponse
+import csv
+from .forms import EngineerReportFilterForm
+
+# Replace JobReport with your actual model name if different
+from accounts.models import Job  # <-- adjust if your model is named Job, Ticket, etc.
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from accounts.models import Job
+
+# dashboard/views.py
+import csv
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from accounts.models import Job
+
+@login_required
+def engineer_report_view(request):
+    user = request.user
+
+    try:
+        engineer_profile = user.engineerprofile
+    except AttributeError:
+        return render(request, "dashboard/no_access.html", {"message": "Only engineers can view this page."})
+
+    qs = Job.objects.filter(assigned_engineer=engineer_profile)
+
+    # --- Filtering ---
+    status = request.GET.get("status")
+    priority = request.GET.get("priority")
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if status:
+        qs = qs.filter(status=status)
+    if priority:
+        qs = qs.filter(priority=priority)
+    if start_date:
+        qs = qs.filter(scheduled_date__gte=start_date)
+    if end_date:
+        qs = qs.filter(scheduled_date__lte=end_date)
+
+    # --- CSV Export ---
+    if "export" in request.GET:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="engineer_report.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            "Job ID", "Title", "Client", "Status", "Priority", "Scheduled Date"
+        ])
+        for job in qs:
+            writer.writerow([
+                job.job_id,
+                job.title,
+                job.client.name if job.client else "",
+                job.get_status_display(),
+                job.get_priority_display(),
+                job.scheduled_date.strftime("%Y-%m-%d %H:%M") if job.scheduled_date else ""
+            ])
+        return response
+
+    # --- Pagination ---
+    paginator = Paginator(qs.order_by("-scheduled_date"), 10)
+    page_number = request.GET.get("page")
+    jobs_page = paginator.get_page(page_number)
+
+    context = {
+        "jobs_page": jobs_page,
+    }
+    return render(request, "dashboard/engineer_report.html", context)

@@ -130,3 +130,52 @@ class InvoiceForm(forms.ModelForm):
             "hours_worked": forms.NumberInput(attrs={"class": "form-control"}),
             "rate_per_hour": forms.NumberInput(attrs={"class": "form-control"}),
         }
+
+
+# dashboard/forms.py
+from django import forms
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+User = get_user_model()
+
+class EngineerReportFilterForm(forms.Form):
+    # Note: remove engineer field here (engineer is implicit = request.user)
+    client = forms.ChoiceField(required=False)
+    job = forms.ChoiceField(required=False)
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    # columns - provide checkboxes for columns user wants to see/export
+    COLUMN_CHOICES = [
+        ('job_id', 'Job ID'),
+        ('client', 'Client'),
+        ('status', 'Status'),
+        ('description', 'Description'),
+        ('created_at', 'Created At'),
+        ('updated_at', 'Updated At'),
+        # add more keys that match your model fields
+    ]
+    columns = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=COLUMN_CHOICES,
+    )
+
+    def __init__(self, *args, **kwargs):
+        # optionally accept a queryset for client/job choices
+        clients_qs = kwargs.pop('clients_qs', None)
+        jobs_qs = kwargs.pop('jobs_qs', None)
+        super().__init__(*args, **kwargs)
+
+        if clients_qs is not None:
+            choices = [('', 'All')] + [(str(c.pk), str(c)) for c in clients_qs]
+            self.fields['client'].choices = choices
+        else:
+            self.fields['client'].choices = [('', 'All')]
+
+        if jobs_qs is not None:
+            choices = [('', 'All')] + [(str(j.pk), getattr(j, 'title', str(j))) for j in jobs_qs]
+            self.fields['job'].choices = choices
+        else:
+            self.fields['job'].choices = [('', 'All')]

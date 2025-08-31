@@ -192,6 +192,10 @@
                             <i class="fas fa-users"></i> Clients
                         </a>
                     </li>
+                    
+                    {% endif %}
+                    {% if user.role == 'manager' %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'dashboard:manager_report' %}">
                             <i class="fas fa-users"></i> Reports Manager
@@ -216,11 +220,13 @@
                         </a>
                     </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-chart-bar"></i> Reports
-                        </a>
-                    </li>
+
+                    {% if request.user.is_authenticated and request.user.role == 'engineer' %}
+                     <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:engineer_report' %}"><i class="fas fa-users"></i>My Reports</a></li>
+                 {% endif %}
+
+                    
+                    
                     {% if user.role == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">
