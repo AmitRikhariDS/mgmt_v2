@@ -31,7 +31,9 @@ USER appuser
 
 # add entrypoint
 COPY deploy/entrypoint.sh /app/entrypoint.sh
+USER root
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
+USER appuser
 CMD ["/app/entrypoint.sh"]
