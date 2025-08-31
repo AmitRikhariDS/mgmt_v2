@@ -47,32 +47,27 @@ def register_view(request):
         email = request.POST.get("email")
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
-        role = request.POST.get("role")  # client or engineer
+        role = request.POST.get("role")
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already taken.")
-            return redirect("register")
+            messages.error(request, "❌ Username already taken.")
+            return render(request, "accounts/register.html")
 
-        # ✅ Create user in CustomUser
         user = User.objects.create_user(
             username=username,
             password=password,
             email=email,
             first_name=first_name,
             last_name=last_name,
-            role=role  # assuming your CustomUser has a role field
+            role=role
         )
 
-        # ✅ Add user to respective group
-        try:
-            group = Group.objects.get(name=role.capitalize())  # "Client" or "Engineer"
-        except Group.DoesNotExist:
-            group = Group.objects.create(name=role.capitalize())
+        group, _ = Group.objects.get_or_create(name=role.capitalize())
         user.groups.add(group)
 
         login(request, user)
-        messages.success(request, f"Account created successfully as {role}.")
-        return redirect('accounts:login') # redirect after signup
+        messages.success(request, f"✅ Account created successfully as {role}.")
+        return render(request, "accounts/register.html")
 
     return render(request, "accounts/register.html")
 
