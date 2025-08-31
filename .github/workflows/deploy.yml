@@ -22,7 +22,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/mgmt_v2:latest
-          docker build -t $IMAGE_NAME .
+          docker build --no-cache -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
       # Deploy to EC2
@@ -49,6 +49,8 @@ jobs:
 
             # Start new container
             docker run -d -p 8000:8000 --name mgmt_app -e DJANGO_ALLOWED_HOSTS="13.62.67.73,localhost" $IMAGE_NAME
+            docker system prune -af --volumes || true  # cleanup unused layers
+
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v3
         with:
@@ -62,7 +64,7 @@ jobs:
 
             Branch: ${{ github.ref }}
             Environment: AWS EC2
-            Application URL: http://13.62.67.73:8000/login/
+            Application URL: http://13.62.67.73:8000
 
             The latest changes have been deployed, and the application is now live. 
             Please verify the functionality and monitor for any issues.
