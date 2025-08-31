@@ -48,8 +48,5 @@ jobs:
             $IMAGE_NAME python manage.py migrate --fake
 
             # Start new container
-            docker run -d -p 8000:8000 \
-              -e DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" \
-              -e ALLOWED_HOSTS="13.62.67.73" \
-              --name mgmt_app \
-              $IMAGE_NAME
+            docker run -d -p 8000:8000 --name mgmt_app -e ALLOWED_HOSTS="13.62.67.73,localhost" $IMAGE_NAME
+
