@@ -21,7 +21,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/mgmt_v2:latest
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/mgmt_v2:latest
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/mgmt_v2:latest
+            IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/mgmt_v2:latest
             docker pull $IMAGE_NAME
             docker stop mgmt_app || true
             docker rm mgmt_app || true
