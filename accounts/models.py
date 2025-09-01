@@ -364,3 +364,18 @@ class ContractService(models.Model):
     
     def __str__(self):
         return f"{self.service_type.name} for {self.contract.contract_number}"
+    
+# billing/models.py
+from django.db import models
+from django.conf import settings
+
+class DraftEmail(models.Model):
+    engineer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    recipient = models.EmailField()
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Draft to {self.recipient} ({self.subject})"
