@@ -13,7 +13,8 @@ COPY . .
 
 # Expose Django port
 EXPOSE 8000
-ENV DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1,www.fieldmgmtgx.dpdns.org"
+
+ENV DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1,www.fieldmgmtgx.dpdns.org,fieldmgmtgx.dpdns.org"
 
 # Start server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
