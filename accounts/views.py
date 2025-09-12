@@ -31,43 +31,76 @@ def logout_view(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('dashboard:home')
 
-# accounts/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib import messages
+from .models import EngineerProfile, ClientCompany, ClientContact
+from decimal import Decimal
+import uuid
+from django.utils.timezone import now
 
 User = get_user_model()
 
+import logging
+logger = logging.getLogger(__name__)
+
 def register_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        email = request.POST.get("email")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        role = request.POST.get("role")
+        try:
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+            email = request.POST.get("email")
+            first_name = request.POST.get("first_name")
+            last_name = request.POST.get("last_name")
+            role = request.POST.get("role")
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "❌ Username already taken.")
+            if User.objects.filter(username=username).exists():
+                messages.error(request, "❌ Username already taken.")
+                return render(request, "accounts/register.html")
+
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                role=role
+            )
+
+            group, _ = Group.objects.get_or_create(name=role.capitalize())
+            user.groups.add(group)
+
+            if role.lower() == 'engineer':
+                EngineerProfile.objects.create(
+                    user=user,
+                    employee_id=f"ENG-{uuid.uuid4().hex[:8]}",
+                    hourly_rate=Decimal('0.00')
+                )
+
+            elif role.lower() == 'client':
+                company_name = f"{first_name} {last_name}'s Company"
+                client_company = ClientCompany.objects.create(
+                    name=company_name,
+                    contact_email=email
+                    # created_at=now(),
+                )
+                ClientContact.objects.create(
+                    user=user,
+                    company=client_company,
+                    position='Owner',
+                    is_primary=True
+                )
+
+            login(request, user)
+            messages.success(request, f"✅ Account created successfully as {role}.")
             return render(request, "accounts/register.html")
 
-        user = User.objects.create_user(
-            username=username,
-            password=password,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            role=role
-        )
-
-        group, _ = Group.objects.get_or_create(name=role.capitalize())
-        user.groups.add(group)
-
-        login(request, user)
-        messages.success(request, f"✅ Account created successfully as {role}.")
-        return render(request, "accounts/register.html")
+        except Exception as e:
+            logger.exception("Error during user registration")  # log to console
+            messages.error(request, f"❌ Registration failed: {str(e)}")
+            return render(request, "accounts/register.html")
 
     return render(request, "accounts/register.html")
 

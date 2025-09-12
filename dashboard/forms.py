@@ -179,3 +179,7 @@ class EngineerReportFilterForm(forms.Form):
             self.fields['job'].choices = choices
         else:
             self.fields['job'].choices = [('', 'All')]
+from django import forms
+
+class EngineerCSVUploadForm(forms.Form):
+    csv_file = forms.FileField()

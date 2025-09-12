@@ -2065,3 +2065,64 @@ def engineer_report_view(request):
         "jobs_page": jobs_page,
     }
     return render(request, "dashboard/engineer_report.html", context)
+
+# views.py
+import csv
+import io
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import EngineerCSVUploadForm
+from accounts.models import EngineerProfile, Skill, CustomUser
+
+def upload_engineer_csv(request):
+    if request.method == "POST":
+        form = EngineerCSVUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = request.FILES["csv_file"]
+            if not csv_file.name.endswith(".csv"):
+                messages.error(request, "Please upload a CSV file.")
+                return redirect("upload_engineer_csv")
+
+            data = csv_file.read().decode("utf-8")
+            io_string = io.StringIO(data)
+            reader = csv.DictReader(io_string)
+
+            for row in reader:
+                try:
+                    user = CustomUser.objects.get(email=row["user_email"], role="engineer")
+
+                    engineer, created = EngineerProfile.objects.update_or_create(
+                        employee_id=row["employee_id"],
+                        defaults={
+                            "user": user,
+                            "skill_level": row["skill_level"],
+                            "hourly_rate": row["hourly_rate"],
+                            "is_available": row["is_available"].strip().lower() == "true",
+                            "max_hours_per_week": row["max_hours_per_week"],
+                            "current_location": row["current_location"],
+                            "latitude": row.get("latitude") or None,
+                            "longitude": row.get("longitude") or None,
+                            "last_location_update": row.get("last_location_update") or None,
+                        }
+                    )
+
+                    # Handle skills (many-to-many)
+                    skills = [s.strip() for s in row["skills"].split(";") if s.strip()]
+                    skill_objs = []
+                    for skill_name in skills:
+                        skill_obj, _ = Skill.objects.get_or_create(name=skill_name)
+                        skill_objs.append(skill_obj)
+                    engineer.skills.set(skill_objs)
+
+                except CustomUser.DoesNotExist:
+                    messages.warning(request, f"User with email {row['user_email']} not found. Skipping row.")
+                except Exception as e:
+                    messages.error(request, f"Error processing row {row}: {str(e)}")
+
+            messages.success(request, "Engineer data uploaded successfully.")
+            return redirect("upload_engineer_csv")
+
+    else:
+        form = EngineerCSVUploadForm()
+    return render(request, "upload_engineer_csv.html", {"form": form})
+

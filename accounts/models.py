@@ -33,6 +33,8 @@ class ClientCompany(models.Model):   # or maybe named Client?
     industry = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.name

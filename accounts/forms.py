@@ -3,6 +3,11 @@ from .models import Job, ClientCompany, ServiceType, EngineerProfile, JobNote, T
 from django import forms
 from .models import EngineerProfile, Skill
 
+# forms.py
+from django import forms
+
+class EngineerCSVUploadForm(forms.Form):
+    csv_file = forms.FileField()
 
 class JobForm(forms.ModelForm):
     class Meta:

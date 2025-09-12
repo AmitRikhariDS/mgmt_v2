@@ -68,6 +68,7 @@ urlpatterns = [
     path("clients/", views.client_list, name="client_list"),
     path("clients/add/", views.client_add, name="client_add"),
     path("clients/<int:pk>/", views.client_detail, name="client_detail"),
-    path('reports/engineer/', views.engineer_report_view, name='engineer_report')
+    path('reports/engineer/', views.engineer_report_view, name='engineer_report'),
+    path('manager/upload-engineers/', views.upload_engineer_csv, name='upload_engineer_csv')
 
 ]
